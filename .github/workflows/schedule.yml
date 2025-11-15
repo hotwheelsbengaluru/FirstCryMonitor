@@ -36,6 +36,7 @@ jobs:
           SEARCH_QUERY: ${{ secrets.SEARCH_QUERY }}
           FIRSTCRY_SEARCH_URL: ${{ secrets.FIRSTCRY_SEARCH_URL }}
           DB_PATH: firstcry_monitor.db
+          DB_COMMIT: ${{ secrets.DB_COMMIT }}
         run: |
           python monitor_firstcry.py
 
@@ -49,15 +50,21 @@ jobs:
             echo "No DB file found."
           fi
 
-      - name: Commit DB changes (optional)
-        if: ${{ secrets.DB_COMMIT == 'true' }}
+      - name: Commit DB changes (optional, controlled by DB_COMMIT secret)
+        # Always run this step, but the script inside checks $DB_COMMIT
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add firstcry_monitor.db || true
-          if git diff --cached --quiet; then
-            echo "No DB changes to commit."
+          echo "DB_COMMIT = '$DB_COMMIT'"
+          if [ "${DB_COMMIT}" = "true" ]; then
+            echo "DB_COMMIT is true → committing DB changes (if any)..."
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add firstcry_monitor.db || true
+            if git diff --cached --quiet; then
+              echo "No DB changes to commit."
+            else
+              git commit -m "Update DB from GitHub Actions run"
+              git push origin HEAD:main
+            fi
           else
-            git commit -m "Update DB from GitHub Actions run"
-            git push origin HEAD:main
+            echo "DB_COMMIT is not 'true' — skipping commit step."
           fi
