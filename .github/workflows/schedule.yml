@@ -31,27 +31,18 @@ jobs:
           FIRSTCRY_SEARCH_URL: ${{ secrets.FIRSTCRY_SEARCH_URL }}
           SEARCH_QUERY: ${{ secrets.SEARCH_QUERY }}
         run: |
-          echo "Resolved environment values (hidden if empty):"
           echo "FIRSTCRY_SEARCH_URL='${FIRSTCRY_SEARCH_URL}'"
           echo "SEARCH_QUERY='${SEARCH_QUERY}'"
           echo ""
-          echo "Resolve test (Python socket):"
-          python - <<'PY'
-import socket, sys
-try:
-    ip = socket.gethostbyname("www.firstcry.com")
-    print("www.firstcry.com ->", ip)
-except Exception as e:
-    print("DNS lookup failed:", e)
-    sys.exit(1)
-PY
-          echo ""
-          echo "HTTP HEAD test (curl):"
+          echo "HEAD https://www.firstcry.com"
           curl -I https://www.firstcry.com || true
+          echo ""
           if [ -n "${FIRSTCRY_SEARCH_URL}" ] && [ -n "${SEARCH_QUERY}" ]; then
             TESTURL="${FIRSTCRY_SEARCH_URL}$(echo "${SEARCH_QUERY}" | sed -e 's/ /+/g')"
-            echo "Testing sample search URL: ${TESTURL}"
+            echo "HEAD ${TESTURL}"
             curl -I "${TESTURL}" || true
+          else
+            echo "Skipping sample search URL test (FIRSTCRY_SEARCH_URL or SEARCH_QUERY empty)"
           fi
 
       - name: Run monitor
