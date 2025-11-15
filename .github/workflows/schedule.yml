@@ -27,7 +27,6 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Check DNS & connectivity (diagnostic)
-        # quick checks to reveal DNS/network issues and the final request URL
         env:
           FIRSTCRY_SEARCH_URL: ${{ secrets.FIRSTCRY_SEARCH_URL }}
           SEARCH_QUERY: ${{ secrets.SEARCH_QUERY }}
@@ -35,7 +34,7 @@ jobs:
           echo "Resolved environment values (hidden if empty):"
           echo "FIRSTCRY_SEARCH_URL='${FIRSTCRY_SEARCH_URL}'"
           echo "SEARCH_QUERY='${SEARCH_QUERY}'"
-          echo
+          echo ""
           echo "Resolve test (Python socket):"
           python - <<'PY'
 import socket, sys
@@ -46,12 +45,10 @@ except Exception as e:
     print("DNS lookup failed:", e)
     sys.exit(1)
 PY
-          echo
+          echo ""
           echo "HTTP HEAD test (curl):"
-          # Try HEAD on the search base then on example search URL
           curl -I https://www.firstcry.com || true
           if [ -n "${FIRSTCRY_SEARCH_URL}" ] && [ -n "${SEARCH_QUERY}" ]; then
-            # build a test URL (encode spaces to + for readability)
             TESTURL="${FIRSTCRY_SEARCH_URL}$(echo "${SEARCH_QUERY}" | sed -e 's/ /+/g')"
             echo "Testing sample search URL: ${TESTURL}"
             curl -I "${TESTURL}" || true
