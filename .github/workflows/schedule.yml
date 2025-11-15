@@ -51,7 +51,6 @@ jobs:
           fi
 
       - name: Commit DB changes (optional, controlled by DB_COMMIT secret)
-        # Always run this step, but the script inside checks $DB_COMMIT
         run: |
           echo "DB_COMMIT = '$DB_COMMIT'"
           if [ "${DB_COMMIT}" = "true" ]; then
